@@ -1,0 +1,22 @@
+---
+- name: 'Inspec 4.23.15 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Downloading Inspec
+      get_url:
+        url: https://omnitruck.chef.io/install.sh
+        dest: /home/ec2-user/install.sh
+      become: true
+
+    - name: Installing Inspec 4.23.15
+      shell: 'bash install.sh -s -- -P inspec'
+      become: true
+    
+    - name: Removing installation files
+      file: 
+        path: /home/ec2-user/install.sh
+        state: absent
+      become: true      

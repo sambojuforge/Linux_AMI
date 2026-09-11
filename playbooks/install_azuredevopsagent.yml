@@ -1,0 +1,35 @@
+---
+- name: 'Azure Devops Agent playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Creating required directories
+      file: 
+        path: /opt/agent
+        state: directory
+      become: true
+
+    - name: Downloading Azure Devops Agent
+      get_url:
+        url: https://vstsagentpackage.azureedge.net/agent/2.163.1/vsts-agent-linux-x64-2.163.1.tar.gz
+        dest: /opt/agent/vsts-agent-linux-x64-2.163.1.tar.gz
+      become: true  
+
+    - name: Installing Azure Devops Agent
+      unarchive:
+        src: /opt/agent/vsts-agent-linux-x64-2.163.1.tar.gz
+        dest: /opt/agent
+        remote_src: yes
+      become: true
+      
+    - name: Changing the ownership of the directory
+      file: 
+        path: /opt/agent
+        state: directory
+        recurse: yes
+        owner: ec2-user
+        group: ec2-user
+      become: true
+               

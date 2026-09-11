@@ -1,0 +1,13 @@
+---
+- name: 'Pywinrm 0.4.2 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing Pywinrm 0.4.2 version
+      pip: 
+        name: pywinrm==0.4.2
+        state: present
+      become: true 
+    

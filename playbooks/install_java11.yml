@@ -1,0 +1,20 @@
+---
+- name: 'Java 11 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing Zulu repositories
+      yum:
+        name: https://cdn.azul.com/zulu/bin/zulu-repo-1.0.0-1.noarch.rpm
+        state: present
+        update_cache: yes
+      become: true
+    
+    - name: Installing Zulu Java 11
+      yum:
+        name: zulu11-jdk
+        state: present
+        update_cache: yes
+      become: true

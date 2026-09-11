@@ -1,0 +1,16 @@
+---
+
+# This playbook has Node JS installation dependency
+
+- name: 'NPM Karma installtion playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing Karma NPM packages
+      npm: 
+        name: karma
+        global: yes
+        state: present
+      become: true

@@ -1,0 +1,153 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+        "aws_session_token": "{{env `AWS_SESSION_TOKEN`}}",
+        "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+        "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+        "aws_ssh_username": "{{env `AWS_SSH_USERNAME`}}",
+        "aws_instance_type": "{{env `AWS_INSTANCE_TYPE`}}",
+        "aws_source_ami": "{{env `AWS_SOURCE_AMI`}}",
+        "aws_region": "{{env `AWS_REGION`}}"
+    },
+
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "token": "{{user `aws_session_token`}}",
+            "region": "{{user `aws_region`}}",
+            "source_ami": "{{user `aws_source_ami`}}",
+            "instance_type": "{{user `aws_instance_type`}}",
+            "ssh_username": "{{user `aws_ssh_username`}}",
+            "ami_name": "linux-buildserver-v1.0.8",
+            "vpc_id": "{{user `aws_vpc_id`}}",
+            "subnet_id": "{{user `aws_subnet_id`}}"
+        }
+    ],
+    
+    "Provisioners": [ 
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_java11.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_ansible.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_packer.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_nodev8.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_nodev12.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_maven.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_docker.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_fontconfig.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_python.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_git.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_dotnetsdk22.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_dotnetsdk31.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_dotnetsdk5.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_dotnetsdk6.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_powershell.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_gulpcli.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_karma.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_azuredevopsagent.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_ruby.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_inspec.yml"
+        },        
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_kerberos.yml"
+        },
+        {
+            "type": "ansible",
+            "user": "{{user `aws_ssh_username`}}",
+            "playbook_file": "../playbooks/install_pywinrm.yml"
+        },
+        {
+            "type": "shell",
+            "inline": "sudo reboot now",
+            "expect_disconnect": true
+        },       
+        {
+            "type": "inspec",
+            "Profile": "inspec.rb",
+            "inspec_env_vars": ["CHEF_LICENSE=accept"],
+            "pause_before": "240s"
+        }
+    ]
+}

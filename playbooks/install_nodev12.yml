@@ -1,0 +1,29 @@
+---
+- name: 'Node 12.19.1 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Downloading Node version 12 repo script
+      get_url:
+        url: https://rpm.nodesource.com/setup_12.x 
+        dest: /home/ec2-user/setup_12.x
+      become: true
+
+    - name: Executing Node version 12 repo script         
+      shell: 'bash /home/ec2-user/setup_12.x'
+      become: true
+
+    - name: Installing Node 12.19.1
+      yum: 
+        name: nodejs-2:12.19.1-1nodesource.x86_64
+        state: present
+        update_cache: yes 
+      become: true  
+
+    - name: Removing installation files
+      file: 
+        path: /home/ec2-user/setup_12.x
+        state: absent
+      become: true   

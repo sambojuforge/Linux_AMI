@@ -1,0 +1,21 @@
+---
+- name: 'Dot Net SDK 6.0.200 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Downloading packages
+      yum:
+        name: https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+        state: present
+        update_cache: yes 
+      become: true 
+
+    - name: Installing Dot Net SDK 6.0.200
+      yum: 
+        name: dotnet-sdk-6.0-6.0.200-1.x86_64
+        state: present
+        update_cache: yes 
+      become: true  
+    

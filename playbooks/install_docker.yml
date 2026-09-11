@@ -1,0 +1,30 @@
+---
+- name: 'Docker playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing docker
+      shell: 'amazon-linux-extras install docker -y'
+      become: true
+
+    - name: Assigning user to a group
+      user:
+        name: docker
+        groups: ec2-user
+        append: yes
+      become: true
+
+    - name: Starting the docker service
+      service:
+        name: docker
+        state: started
+      become: true  
+
+    - name: Enabling Docker systemctl service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+      become: true

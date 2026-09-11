@@ -1,0 +1,19 @@
+---
+- name: 'Kerberos Library playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing Kerberos Library - gcc krb5-devel krb5-libs krb5-workstation
+      yum: 
+        name: "{{ item }}"
+        state: present
+        update_cache: yes 
+      become: true
+      with_items:
+      - gcc-7.3.1-9.amzn2.x86_64
+      - krb5-devel-1.15.1-37.amzn2.2.2.x86_64
+      - krb5-libs-1.15.1-37.amzn2.2.2.x86_64
+      - krb5-workstation-1.15.1-37.amzn2.2.2.x86_64
+  

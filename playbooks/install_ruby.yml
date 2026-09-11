@@ -1,0 +1,10 @@
+---
+- name: 'Ruby 2.6 playbook'
+  hosts: default
+  vars:
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing Ruby
+      shell: 'amazon-linux-extras install ruby2.6'
+      become: true

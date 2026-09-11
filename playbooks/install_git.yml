@@ -1,0 +1,14 @@
+---
+- name: 'git playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing git
+      yum: 
+        name: git
+        state: present
+        update_cache: yes 
+      become: true  
+  

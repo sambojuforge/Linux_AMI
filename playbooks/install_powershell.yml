@@ -1,0 +1,17 @@
+---
+
+# This playbook has dot net installation dependency
+
+- name: 'Powershell 7.1.0 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Installing Powershell 7.1.0
+      yum: 
+        name: https://github.com/PowerShell/PowerShell/releases/download/v7.1.0/powershell-7.1.0-1.rhel.7.x86_64.rpm
+        state: present
+        update_cache: yes 
+      become: true  
+      

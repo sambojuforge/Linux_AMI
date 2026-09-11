@@ -1,0 +1,25 @@
+---
+- name: 'Packer 1.6.4 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Downloading packer 1.6.4 zip files
+      get_url:
+        url: https://releases.hashicorp.com/packer/1.6.4/packer_1.6.4_linux_amd64.zip
+        dest: /usr/local/bin/packer_1.6.4_linux_amd64.zip
+      become: true
+
+    - name: Unziping packer 1.6.4
+      unarchive:
+        src: /usr/local/bin/packer_1.6.4_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+      become: true  
+
+    - name: Removing installation files
+      file: 
+        path: /usr/local/bin/packer_1.6.4_linux_amd64.zip
+        state: absent
+      become: true

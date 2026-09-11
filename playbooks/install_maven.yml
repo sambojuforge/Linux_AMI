@@ -1,0 +1,24 @@
+---
+- name: 'Maven 3.5.2 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Downloading maven repositories
+      get_url:
+        url: http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo
+        dest: /etc/yum.repos.d/epel-apache-maven.repo 
+      become: true  
+
+    - name: Installing epel-release
+      shell: 'sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo'
+      become: true      
+
+    - name: Installing Maven 3.5.2 version
+      yum: 
+        name: apache-maven-3.5.2-1.el6.noarch
+        state: present
+        update_cache: yes 
+      become: true  
+   

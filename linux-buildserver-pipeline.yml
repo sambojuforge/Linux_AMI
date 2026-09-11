@@ -1,0 +1,104 @@
+variables:
+  AWS_REGION: 'us-east-1'
+  AWS_SOURCE_AMI: '$(AWS_AMI_ID)'
+  AWS_INSTANCE_TYPE: 't3.small'
+  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}: 
+    AWS_ACCESS_KEY_ID: '$(AWS_ACCESS_KEY_ID_main)'
+    AWS_SECRET_ACCESS_KEY: '$(AWS_SECRET_ACCESS_KEY_main)'
+    AWS_SUBNET_ID: '$(AWS_SUBNET_ID_main)'
+    AWS_VPC_ID: '$(AWS_VPC_ID_main)'
+  ${{ if ne(variables['Build.SourceBranchName'], 'main') }}: 
+    AWS_ACCESS_KEY_ID: '$(AWS_ACCESS_KEY_ID_test)'
+    AWS_SECRET_ACCESS_KEY: '$(AWS_SECRET_ACCESS_KEY_test)'
+    AWS_SUBNET_ID: '$(AWS_SUBNET_ID_test)'
+    AWS_VPC_ID: '$(AWS_SUBNET_ID_tes)'
+
+name: Linux-BuildServer - $(Date:yyyyMMdd)$(Rev:.r)
+pool: devops-linux-v2
+stages:               
+  - stage: Validate
+    jobs:
+      - job: Packer_Validate
+        displayName: Validating
+        steps:
+          - task: Bash@3
+            env:
+              AWS_SSH_USERNAME: '$(AWS_SSH_USERNAME)'         
+            inputs:
+              targetType: 'inline'
+              script: |
+                set -x              
+                cd $(System.DefaultWorkingDirectory)/buildserver/
+                /usr/local/bin/packer validate linux-buildserver.json
+
+  - stage: Build
+    jobs:
+      - job: Packer_Build
+        displayName: Building
+        steps:
+          - task: Bash@3
+            env:
+              AWS_ACCESS_KEY_ID: '$(AWS_ACCESS_KEY_ID)'
+              AWS_SECRET_ACCESS_KEY: '$(AWS_SECRET_ACCESS_KEY)'
+              AWS_SUBNET_ID: '$(AWS_SUBNET_ID)'
+              AWS_VPC_ID: '$(AWS_VPC_ID)'
+              AWS_SSH_USERNAME: '$(AWS_SSH_USERNAME)'
+              AWS_INSTANCE_TYPE: '$(AWS_INSTANCE_TYPE)'
+              AWS_SOURCE_AMI: '$(AWS_SOURCE_AMI)'
+              AWS_REGION: '$(AWS_REGION)'                  
+            inputs:
+              targetType: 'inline'
+              script: |
+                set -x              
+                cd $(System.DefaultWorkingDirectory)/buildserver/
+                /usr/local/bin/packer build linux-buildserver.json | tee $(System.DefaultWorkingDirectory)/output.txt
+                cd $(System.DefaultWorkingDirectory)/
+                tail -2 output.txt | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }' > ami.txt
+                
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(System.DefaultWorkingDirectory)/ami.txt'
+              artifactName: 'AMIID'
+  
+  - stage: Share
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    jobs:
+      - job: Retrive_AMI_ID
+        displayName: Retrive AMI ID
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'AMIID'
+              downloadPath: '$(System.DefaultWorkingDirectory)/'
+
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                AMI_ID=$(cat AMIID/ami.txt) 
+                echo "##vso[task.setvariable variable=AMI_ID;isOutput=true]$AMI_ID"
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+            name: bashstep
+          
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "$(bashstep.AMI_ID)"
+
+      - job: Share_AMI_ID
+        displayName: Share AMI
+        dependsOn: Retrive_AMI_ID
+        variables:
+          AMI_ID: $[ dependencies.Retrive_AMI_ID.outputs['bashstep.AMI_ID'] ]
+        steps:        
+          - task: AWSCLI@1
+            inputs:
+              awsCredentials: 'AWS Shared DevOps'
+              regionName: 'us-east-1'
+              awsCommand: 'ec2'
+              awsSubCommand: 'modify-image-attribute'
+              #Account Names                                                           Team 1            Team 2             
+              awsArguments: '--image-id $(AMI_ID) --launch-permission "Add=[{UserId=$UserIdTeam1},{UserId=$UserIdTeam2}]"'        

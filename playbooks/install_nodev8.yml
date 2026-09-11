@@ -1,0 +1,30 @@
+---
+- name: 'Node 8.17.0 playbook'
+  hosts: default
+  vars: 
+    ansible_python_interpreter: "/usr/bin/python2.7"
+
+  tasks:
+    - name: Downloading Node version 8 repo script
+      get_url:
+        url: https://rpm.nodesource.com/setup_8.x 
+        dest: /home/ec2-user/setup_8.x
+      become: true
+
+    - name: Executing Node version 8 repo script         
+      shell: 'bash /home/ec2-user/setup_8.x'
+      become: true
+
+    - name: Installing Node 8.17.0
+      yum: 
+        name: nodejs-2:8.17.0-1nodesource.x86_64
+        state: present
+        update_cache: yes 
+      become: true   
+
+    - name: Removing installation files
+      file: 
+        path: /home/ec2-user/setup_8.x
+        state: absent
+      become: true
+      
