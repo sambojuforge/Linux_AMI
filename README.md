@@ -1,101 +1,111 @@
-# AWS Linux Build Server AMI Creation
+# AWS Linux Build Server AMI
 
-This code is implemented to create custom AWS Linux Build Server AMI's 
+This repository contains the infrastructure-as-code to build a custom AWS Linux Build Server AMI using **Packer**, **Ansible**, and **InSpec**.
 
-This code uses:
+---
 
-    * Ansible - Is used to install desired packages 
+## Tools Used
 
-    * Packer - Is used to run provisioners (Ansible playbooks) to create AMIs
+- **Ansible** — installs and configures required packages on the AMI
+- **Packer** — orchestrates provisioners (Ansible playbooks) to build the AMI
+- **InSpec** — runs automated compliance tests against the final AMI
 
-    * InSpec - Is used to test the final AMIs
+---
 
-----    
+## Repository Structure
+
+```
+├── buildserver/
+│   ├── linux-buildserver.json   # Packer template
+│   └── inspec.rb                # InSpec compliance tests
+├── playbooks/                   # Ansible playbooks for each package
+│   ├── install_ansible.yml
+│   ├── install_azuredevopsagent.yml
+│   ├── install_docker.yml
+│   ├── install_dotnetsdk22.yml
+│   ├── install_dotnetsdk31.yml
+│   ├── install_dotnetsdk5.yml
+│   ├── install_dotnetsdk6.yml
+│   ├── install_fontconfig.yml
+│   ├── install_git.yml
+│   ├── install_gulpcli.yml
+│   ├── install_inspec.yml
+│   ├── install_java11.yml
+│   ├── install_karma.yml
+│   ├── install_kerberos.yml
+│   ├── install_maven.yml
+│   ├── install_nodev8.yml
+│   ├── install_nodev12.yml
+│   ├── install_packer.yml
+│   ├── install_powershell.yml
+│   ├── install_python.yml
+│   ├── install_pywinrm.yml
+│   └── install_ruby.yml
+└── linux-buildserver-pipeline.yml  # Azure DevOps pipeline
+```
+
+---
 
 ## Pipeline
 
-The pipeline for this code can be file linux-buildserver-pipeline.yml file
+The pipeline is defined in `linux-buildserver-pipeline.yml` and runs on Azure DevOps.
 
-The pipeline is created in such a way that if any commits pushed to branches other than master, the code will run in AWS test account
+- Commits to any branch **other than `main`** run the pipeline against a **test AWS account**
+- Commits to **`main`** run the pipeline against the **production AWS account** and share the resulting AMI with target accounts
+- To contribute, open a pull request to `main` — the AMI version number in `buildserver/linux-buildserver.json` (`ami_name`) should be incremented with each change
 
-When you have finalized your code, you can submit a PR request to devops team
+---
 
-After PR approval, the code wil be merged into master
+## Prerequisites
 
-Merging into master will trigger the code to run in Shared Devops AWS account and share this AMI to all of our existing AWS accounts 
-
-Note: When you make changes, please change the verison number under ami_name in linux-buildserver.json file
-
----- 
-
-## Contents 
-
-Packer file is builderver/linux-buildserver.json
-
-Unit tests InSpec file is builderver/inspec.rb
-
-Asible playbooks are located at playbooks/
-
-Pipeline file is linux-buildserver-pipeline.yml
-
----- 
-
-## To locally test this code
-
-### Following packages installed in you linux
-
-Installing Ansible 
+### Install Ansible
 
 ```bash
-$ sudo yum install python2-pip-9.0.3-1.amzn2.0.2.noarch
-$ pip install ansible==2.9.14
+sudo yum install python2-pip-9.0.3-1.amzn2.0.2.noarch
+pip install ansible==2.9.14
 ```
 
-Installing Packer
+### Install Packer
 
 ```bash
-$ sudo wget https://releases.hashicorp.com/packer/1.6.4/packer_1.6.4_linux_amd64.zip
-$ sudo tar -xvf packer_1.6.4_linux_amd64.zip -C /usr/local/bin/
+sudo wget https://releases.hashicorp.com/packer/1.6.4/packer_1.6.4_linux_amd64.zip
+sudo unzip packer_1.6.4_linux_amd64.zip -d /usr/local/bin/
 ```
 
-Installing InSpec
+### Install InSpec
 
 ```bash
-$ sudo wget https://omnitruck.chef.io/install.sh 
-$ bash install.sh -s -- -P inspec
+sudo wget https://omnitruck.chef.io/install.sh
+bash install.sh -s -- -P inspec
 ```
 
-### Following environment variables to be defined 
+---
 
-Below are the environment variables that need to be defined on your machine
+## Local Testing
 
-AWS_ACCESS_KEY_ID_main
+### Required Environment Variables
 
-AWS_SECRET_ACCESS_KEY_main
+Set the following environment variables before running Packer locally:
 
-AWS_ACCESS_KEY_ID_test
+| Variable | Description |
+|----------|-------------|
+| `AWS_ACCESS_KEY_ID_main` | AWS access key for the production account |
+| `AWS_SECRET_ACCESS_KEY_main` | AWS secret key for the production account |
+| `AWS_ACCESS_KEY_ID_test` | AWS access key for the test account |
+| `AWS_SECRET_ACCESS_KEY_test` | AWS secret key for the test account |
+| `AWS_SUBNET_ID` | Subnet ID to launch the builder instance in |
+| `AWS_VPC_ID` | VPC ID to launch the builder instance in |
+| `AWS_SSH_USERNAME` | SSH username (e.g. `ec2-user`) |
+| `AWS_INSTANCE_TYPE` | EC2 instance type (e.g. `t3.small`) |
+| `AWS_REGION` | AWS region (e.g. `us-east-1`) |
+| `AWS_AMI_ID` | Source AMI ID to build from |
+| `Team1_AccountID` | AWS account ID for the first AMI share target |
+| `Team2_AccountID` | AWS account ID for the second AMI share target |
 
-AWS_SECRET_ACCESS_KEY_test
-
-AWS_SUBNET_ID
-
-AWS_VPC_ID
-
-AWS_SSH_USERNAME=ec2-user
-
-AWS_INSTANCE_TYPE
-
-AWS_REGION
-
-AWS_AMI_ID
-
-### To run this code locally, follow below
-
-After the above variables are defined, navigate to /buildserver/
-
-Run the below commands
+### Run Packer
 
 ```bash
-$ packer validate linux-buildserver.json
-$ packer build linux-buildserver.json
+cd buildserver/
+packer validate linux-buildserver.json
+packer build linux-buildserver.json
 ```

@@ -14,7 +14,7 @@ variables:
     AWS_VPC_ID: '$(AWS_SUBNET_ID_tes)'
 
 name: Linux-BuildServer - $(Date:yyyyMMdd)$(Rev:.r)
-pool: devops-linux-v2
+pool: devops-linux-v1-agent-pool
 stages:               
   - stage: Validate
     jobs:
@@ -96,9 +96,9 @@ stages:
         steps:        
           - task: AWSCLI@1
             inputs:
-              awsCredentials: 'AWS Shared DevOps'
+              awsCredentials: 'AWS_Creds_Service_Connection_name'
               regionName: 'us-east-1'
               awsCommand: 'ec2'
               awsSubCommand: 'modify-image-attribute'
               #Account Names                                                           Team 1            Team 2             
-              awsArguments: '--image-id $(AMI_ID) --launch-permission "Add=[{UserId=$UserIdTeam1},{UserId=$UserIdTeam2}]"'        
+              awsArguments: '--image-id $(AMI_ID) --launch-permission "Add=[{UserId=$(Team1_AccountID)},$(Team2_AccountID)]"'        
