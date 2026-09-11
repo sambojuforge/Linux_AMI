@@ -21,7 +21,7 @@
             "source_ami": "{{user `aws_source_ami`}}",
             "instance_type": "{{user `aws_instance_type`}}",
             "ssh_username": "{{user `aws_ssh_username`}}",
-            "ami_name": "linux-buildserver-v1.0.8",
+            "ami_name": "linux-buildserver-v1.0.0",
             "vpc_id": "{{user `aws_vpc_id`}}",
             "subnet_id": "{{user `aws_subnet_id`}}"
         }
